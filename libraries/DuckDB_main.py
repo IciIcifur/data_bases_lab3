@@ -4,10 +4,10 @@ import duckdb
 
 
 def fillTheDatabase(database, path):
-    connection = duckdb.connect('databases/' + database + '.duckdb')
+    connection = duckdb.connect('libraries/databases/' + database + '.duckdb')
     cursor = connection.cursor()
 
-    initQuery = 'CREATE TABLE ' + database + ' AS SELECT * FROM read_csv_auto(' + path + ');'
+    initQuery = 'CREATE TABLE ' + database + ' AS SELECT * FROM read_csv_auto(' + "'" + path + "'" + ');'
     cursor.execute(initQuery)
     print("Database created and filled succesfully.")
 
@@ -16,7 +16,7 @@ def fillTheDatabase(database, path):
 
 
 def fourQueries(database):
-    connection = duckdb.connect('databases/' + database + '.duckdb')
+    connection = duckdb.connect('libraries/databases/' + database + '.duckdb')
     cursor = connection.cursor()
 
     queries = [
@@ -33,16 +33,16 @@ def fourQueries(database):
         print("Next query...")
         times = []
 
-        for t in range(100):
+        for t in range(10):
             start = datetime.now()
 
             cursor.execute(query)
 
             end = datetime.now()
 
-            times.append((end - start).total_seconds() * 1000)
+            times.append((end - start).total_seconds())
 
-        results.write(f"|{(sum(times) / 100):.5}")
+        results.write(f"|{(sum(times) / 10):.5}")
 
     cursor.close()
     connection.close()

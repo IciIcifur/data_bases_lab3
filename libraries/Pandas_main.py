@@ -16,49 +16,49 @@ def fourQueries(frame):
 
     print("Next query...")
     times = []
-    for t in range(100):
+    for t in range(10):
         start = datetime.now()
         frame.groupby('VendorID').size()
         end = datetime.now()
 
-        times.append((end - start).total_seconds() * 1000)
-    results.write(f"|{(sum(times) / 100):.5}")
+        times.append((end - start).total_seconds())
+    results.write(f"|{(sum(times) / 10):.5}")
 
     print("Next query...")
     times = []
-    for t in range(100):
+    for t in range(10):
         start = datetime.now()
 
         frame.groupby('passenger_count')['total_amount'].mean()
 
         end = datetime.now()
 
-        times.append((end - start).total_seconds() * 1000)
-    results.write(f"|{(sum(times) / 100):.5}")
+        times.append((end - start).total_seconds())
+    results.write(f"|{(sum(times) / 10):.5}")
 
     print("Next query...")
     times = []
-    for t in range(100):
+    for t in range(10):
         start = datetime.now()
 
         frame.groupby(['passenger_count', frame['tpep_pickup_datetime'].dt.to_period("Y")]).size()
 
         end = datetime.now()
 
-        times.append((end - start).total_seconds() * 1000)
-    results.write(f"|{(sum(times) / 100):.5}")
+        times.append((end - start).total_seconds())
+    results.write(f"|{(sum(times) / 10):.5}")
 
     print("Next query...")
     times = []
-    for t in range(100):
+    for t in range(10):
         start = datetime.now()
         frame.sort_values('tpep_pickup_datetime').groupby(
             ['passenger_count', frame['tpep_pickup_datetime'].dt.to_period("Y"),
              frame['trip_distance'].round()]).size().sort_values(ascending=False)
         end = datetime.now()
 
-        times.append((end - start).total_seconds() * 1000)
-    results.write(f"|{(sum(times) / 100):.5}")
+        times.append((end - start).total_seconds())
+    results.write(f"|{(sum(times) / 10):.5}")
 
     results.close()
 

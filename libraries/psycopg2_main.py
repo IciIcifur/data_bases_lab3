@@ -18,11 +18,11 @@ def createTheDatabase(database, user, password):
     connection = dbapi.connect(dbname=database, user=user, password=password, host="127.0.0.1")
     cursor = connection.cursor()
 
-    newTableQuery = "CREATE TABLE " + database
+    newTableQuery = "CREATE TABLE " + database + "()"
     cursor.execute(newTableQuery)
     connection.commit()
 
-    print("База данных и новая таблица успешно созданы.")
+    print("Database and new table were created successfully.")
 
     cursor.close()
     connection.close()
@@ -107,14 +107,14 @@ def fourQueries(database, user, password):
     for query in queries:
         print("Next query...")
         times = []
-        for t in range(100):
+        for t in range(10):
             start = datetime.now()
 
             cursor.execute(query)
 
             end = datetime.now()
-            times.append((end - start).total_seconds() * 1000)
-        results.write(f"|{(sum(times) / 100):.5}")
+            times.append((end - start).total_seconds())
+        results.write(f"|{(sum(times) / 10):.5}")
 
     connection.commit()
     cursor.close()

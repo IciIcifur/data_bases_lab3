@@ -1,7 +1,5 @@
-*.docx
-*.csv
-*.db
-*.duckdb
-*.iml
-*.xml
-.idea
+.docx
+.csv
+.db
+.duckdb
+venv

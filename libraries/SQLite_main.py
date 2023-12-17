@@ -2,11 +2,12 @@ import csv
 from datetime import datetime
 from libraries.additionals import dataType
 
+import pandas as pd
 import sqlite3 as sl
 
 
 def fillTheDatabase(database, path):
-    dbPath = 'databases/' + database + '.db'
+    dbPath = 'libraries/databases/' + database + '.db'
     connection = sl.connect(dbPath)
 
     print("Database created succesfully.")
@@ -17,8 +18,6 @@ def fillTheDatabase(database, path):
     columns = []
     dataTypes = []
     i = -1
-
-    print("Filling the table may be long. Please, wait.")
     for csvLine in csvObject:
         i += 1
         if i == 0:
@@ -33,7 +32,6 @@ def fillTheDatabase(database, path):
 
         if i == 1:
             line = list(csvLine)
-
             j = 0
             initQuery = 'CREATE TABLE ' + database + ' ('
 
@@ -45,31 +43,12 @@ def fillTheDatabase(database, path):
             initQuery = initQuery[0:-2]
             initQuery += ')'
             cursor.execute(initQuery)
+            connection.commit()
+            break
 
-        query = "INSERT INTO " + database + " ("
-        for k in range(len(columns) - 1):
-            query += columns[k] + ', '
-        query += columns[-1] + ') VALUES ('
-        line = list(csvLine)
-
-        for k in range(len(line) - 1):
-            if line[k] == '':
-                line[k] = 'NULL'
-            if dataTypes[k] == 'VARCHAR(20)' or dataTypes[k] == 'TIMESTAMP':
-                query += "'" + line[k] + "'" + ', '
-            else:
-                query += line[k] + ', '
-        if line[-1] == '':
-            line[-1] = 'NULL'
-        if dataTypes[-1] == 'VARCHAR(20)' or dataTypes[-1] == 'TIMESTAMP':
-            query += "'" + line[-1] + "'" + ');'
-        else:
-            query += line[-1] + ');'
-
-        cursor.execute(query)
-        connection.commit()
-        if (i + 1) % 10000 == 0:
-            print(i + 1, 'lines are already processed...')
+    dbFrame = pd.read_csv(path)
+    dbFrame.rename(columns={'Unnamed: 0': 'Unnamed', 'Airport_fee': 'DuplicatedColumn'}, inplace=True)
+    dbFrame.to_sql(database, connection, if_exists='append', index=False)
 
     print('The table filled succesfully.')
     cursor.close()
@@ -77,7 +56,7 @@ def fillTheDatabase(database, path):
 
 
 def fourQueries(database):
-    dbPath = 'databases/' + database + '.db'
+    dbPath = 'libraries/databases/' + database + '.db'
     connection = sl.connect(dbPath)
     cursor = connection.cursor()
 
@@ -95,16 +74,16 @@ def fourQueries(database):
         print("Next query...")
         times = []
 
-        for t in range(100):
+        for t in range(10):
             start = datetime.now()
 
             cursor.execute(query)
 
             end = datetime.now()
 
-            times.append((end - start).total_seconds() * 1000)
+            times.append((end - start).total_seconds())
 
-        results.write(f"|{(sum(times) / 100):.5}")
+        results.write(f"|{(sum(times) / 10):.5}")
 
     cursor.close()
     connection.close()
