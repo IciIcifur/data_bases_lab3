@@ -1,2 +1,0 @@
-LIBRARY|1 query|2 query|3 query|4 query
-Psycopg2|185.66|265.96|1103.8|1557.7|

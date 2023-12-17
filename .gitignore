@@ -1,0 +1,6 @@
+*.docx
+*.csv
+*.db
+*.duckdb
+*.iml
+*.xml

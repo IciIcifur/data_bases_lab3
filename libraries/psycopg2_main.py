@@ -1,22 +1,34 @@
-import psycopg2 as dbapi
 import csv
 from datetime import datetime
+from libraries.additionals import dataType
+import psycopg2 as dbapi
 
 
-def checkDataType(data):
-    for letter in data:
-        if letter == '-' or letter == ':':
-            return 'TIMESTAMP'
-        if letter == '.':
-            return 'FLOAT'
-        if 'A' <= letter <= 'Z' or 'a' <= letter <= 'z':
-            return 'VARCHAR(20)'
-    if len(data):
-        return 'INTEGER'
-    return 'FLOAT'
+def createTheDatabase(database, user, password):
+    connection = dbapi.connect(dbname="postgres", user=user, password=password, host="127.0.0.1")
+    cursor = connection.cursor()
+    connection.autocommit = True
+
+    newBaseQuery = "CREATE DATABASE " + database
+    cursor.execute(newBaseQuery)
+
+    cursor.close()
+    connection.close()
+
+    connection = dbapi.connect(dbname=database, user=user, password=password, host="127.0.0.1")
+    cursor = connection.cursor()
+
+    newTableQuery = "CREATE TABLE " + database
+    cursor.execute(newTableQuery)
+    connection.commit()
+
+    print("База данных и новая таблица успешно созданы.")
+
+    cursor.close()
+    connection.close()
 
 
-def fillTheTable(database, user, password, path):
+def fillTheDatabase(database, user, password, path):
     connection = dbapi.connect(database=database, user=user, password=password)
 
     cursor = connection.cursor()
@@ -44,10 +56,10 @@ def fillTheTable(database, user, password, path):
 
             j = 0
             for column in columns:
-                dataTypes.append(checkDataType(line[j]))
+                dataTypes.append(dataType.check(line[j]))
                 cursor.execute(
-                    "ALTER TABLE nyc_yellow "
-                    "ADD " + column + " " + dataTypes[j] + " NULL;")
+                    "ALTER TABLE " + database +
+                    " ADD " + column + " " + dataTypes[j] + " NULL;")
                 j += 1
 
         query = "INSERT INTO " + database + " ("
@@ -70,34 +82,10 @@ def fillTheTable(database, user, password, path):
             query += line[-1] + ');'
 
         cursor.execute(query)
-        if (i + 1) % 50 == 0:
-            print(i, 'lines are already processed...')
+        if (i + 1) % 400000 == 0:
+            print(i + 1, 'lines are already processed...')
 
     connection.commit()
-    cursor.close()
-    connection.close()
-
-
-def createTheDatabase(database, user, password):
-    connection = dbapi.connect(dbname="postgres", user=user, password=password, host="127.0.0.1")
-    cursor = connection.cursor()
-    connection.autocommit = True
-
-    newBaseQuery = "CREATE DATABASE " + database
-    cursor.execute(newBaseQuery)
-
-    cursor.close()
-    connection.close()
-
-    connection = dbapi.connect(dbname=database, user=user, password=password, host="127.0.0.1")
-    cursor = connection.cursor()
-
-    newTableQuery = "CREATE TABLE " + database
-    cursor.execute(newTableQuery)
-    connection.commit()
-
-    print("База данных и новая таблица успешно созданы.")
-
     cursor.close()
     connection.close()
 
@@ -107,15 +95,14 @@ def fourQueries(database, user, password):
     cursor = connection.cursor()
 
     queries = [
-        "SELECT vendorid, count(*) FROM nyc_yellow GROUP BY 1;",
-        "SELECT passenger_count, avg(total_amount) FROM nyc_yellow GROUP BY 1;",
-        "SELECT passenger_count, extract(year from tpep_pickup_datetime), count(*) FROM nyc_yellow GROUP BY 1, 2",
+        "SELECT vendorid, count(*) FROM " + database + " GROUP BY 1;",
+        "SELECT passenger_count, avg(total_amount) FROM " + database + " GROUP BY 1;",
+        "SELECT passenger_count, extract(year from tpep_pickup_datetime), count(*) FROM " + database + " GROUP BY 1, 2",
         "SELECT passenger_count, extract(year from tpep_pickup_datetime), round(trip_distance), count(*) "
-        "FROM nyc_yellow GROUP BY 1, 2, 3 ORDER BY 2, 4 desc"
+        "FROM " + database + " GROUP BY 1, 2, 3 ORDER BY 2, 4 desc"
     ]
 
-    results = open('libraries/results.txt', 'a')
-    results.write('Psycopg2|')
+    results = open('results.txt', 'a')
 
     for query in queries:
         print("Next query...")
@@ -127,7 +114,7 @@ def fourQueries(database, user, password):
 
             end = datetime.now()
             times.append((end - start).total_seconds() * 1000)
-        results.write(f"{(sum(times) / 100):.5}|")
+        results.write(f"|{(sum(times) / 100):.5}")
 
     connection.commit()
     cursor.close()
@@ -135,14 +122,18 @@ def fourQueries(database, user, password):
     results.close()
 
 
-try:
-    createTheDatabase('nyc_yellow', 'postgres', '123')
-except:
-    print('Database and table are already exist.')
-finally:
+def main(database, path):
     try:
-        fillTheTable('nyc_yellow', 'postgres', '123', 'nyc_yellow_tiny.csv')
+        createTheDatabase(database, 'postgres', '123')
     except:
-        print('Database is already filled.')
+        print('Database and table are already exist.')
     finally:
-        fourQueries('nyc_yellow', 'postgres', '123')
+        try:
+            fillTheDatabase(database, 'postgres', '123', path)
+        except:
+            print('Database is already filled.')
+        finally:
+            try:
+                fourQueries(database, 'postgres', '123')
+            except:
+                print('An error occured while working with psycopg2. Try to delete the database in PGAdmin.')

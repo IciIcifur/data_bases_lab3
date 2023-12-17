@@ -4,8 +4,7 @@
 ! не изменяйте строки с названиями библиотек
 ! за исключением постановки "+" в начале.
 
-+psycopg2
+psycopg2
 SQLite
 DuckDB
-Pandas
-SQLAlchemy
++Pandas
