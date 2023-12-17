@@ -1,11 +1,10 @@
 import os
-from datetime import datetime
+
 from libraries import psycopg2_main
 from libraries import SQLite_main
 from libraries import DuckDB_main
 from libraries import Pandas_main
 
-print(datetime.now())
 os.system('pip install -r requirements.txt')
 
 results = open('results.txt', 'w+')
@@ -37,4 +36,3 @@ for line in config.readlines():
             lib.main('nyc_yellow_big', 'libraries/data/nyc_yellow_big.csv')
 
 results.close()
-print(datetime.now())
