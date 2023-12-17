@@ -4,3 +4,4 @@
 *.duckdb
 *.iml
 *.xml
+.idea
